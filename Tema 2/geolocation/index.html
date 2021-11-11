@@ -1,0 +1,140 @@
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"
+    type="text/javascript" charset="utf-8"></script>
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"
+    type="text/javascript" charset="utf-8"></script>
+  </head>
+  <body>
+    <div style="width: 640px; height: 480px"  id="mapContainer"></div>
+    <script>
+
+    var svgMarkup = '<svg width="24" height="24" ' +
+    'xmlns="http://www.w3.org/2000/svg">' +
+    '<rect stroke="white" fill="#1b468d" x="1" y="1" width="22" ' +
+    'height="22" /><text x="12" y="18" font-size="12pt" ' +
+    'font-family="Arial" font-weight="bold" text-anchor="middle" ' +
+    'fill="white">H</text></svg>';
+
+  
+        
+        if ("geolocation" in navigator) {
+        document.write("La geolocalizacion esta disponible ");
+
+        } else {
+        document.write("La geolocalizacion no está disponible ");
+        let typeErr = geolocation.code;
+
+
+        
+        if (typeErr = 1) {
+            document.write("No esta disponible, permiso denegado");
+        } else if (typeErr = 2) {
+            document.write("No esta disponible, posicion no disponible");
+        } else if (typeErr = 3) {
+            document.write("No esta disponible, tiempo de espera agotado");
+        };
+        }
+
+
+        var options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
+
+        
+            function success(pos) {
+            var crd = pos.coords;
+            
+              
+            var map = new H.Map(
+            document.getElementById('mapContainer'),
+            maptypes.vector.normal.map,
+            {
+            zoom: 10,
+            center: { lng: crd.longitude, lat: crd.latitude }
+            }
+            );
+            var icon = new H.map.Icon(svgMarkup);
+            coords = { lng: crd.longitude, lat: crd.latitude };
+            marker = new H.map.Marker(coords, {icon: icon});
+            map.addObject(marker);
+            map.setCenter(coords);
+            
+
+            var router = platform.getRoutingService(),
+            routeRequestParams = {
+              mode: 'fastest;car',
+              representation: 'display',
+              routeattributes: 'waypoints,summary,shape,legs',
+              maneuverattributes: 'direction,action',
+              waypoint0: '37.17701, -3.59168', 
+              waypoint1: '37.20855, -3.6383'  
+            };
+
+            var routingParameters = {
+  'routingMode': 'fast',
+  'transportMode': 'car',
+  // The start point of the route:
+  'origin': '37.17701, -3.59168',
+  // The end point of the route:
+  'destination': '37.20855, -3.6383',
+  // Include the route shape in the response
+  'return': 'polyline'
+};
+
+        
+
+
+
+
+var onResult = function(result) {
+  if (result.routes.length) {
+    result.routes[0].sections.forEach((section) => {
+        let linestring = H.geo.LineString.fromFlexiblePolyline(section.polyline);
+
+        let routeLine = new H.map.Polyline(linestring, {
+          style: { strokeColor: 'blue', lineWidth: 3 }
+        });
+
+        let startMarker = new H.map.Marker(section.departure.place.location);
+
+        let endMarker = new H.map.Marker(section.arrival.place.location);
+
+        map.addObjects([routeLine, startMarker, endMarker]);
+
+        map.getViewModel().setLookAtData({bounds: routeLine.getBoundingBox()});
+
+
+    });
+  }
+};
+
+var router = platform.getRoutingService(null, 8);
+
+};
+
+  function error(err) {
+  console.warn('ERROR(' + err.code + '): ' + err.message);
+  };
+
+  navigator.geolocation.getCurrentPosition(success, error);
+
+  var platform = new H.service.Platform({
+    'apikey': 'cKfkdTtUMdqj_Yk-FLOzZH0gUkXhxIwrQ9yWB1A9yDE'
+  });
+
+      // Obtain the default map types from the platform object
+      var maptypes = platform.createDefaultLayers();
+       
+
+
+      
+
+
+
+    </script>
+  </body>
+</html>
